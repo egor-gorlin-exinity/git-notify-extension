@@ -1,10 +1,7 @@
-import { useCallback, useState } from 'react';
-import * as browser from 'webextension-polyfill';
-import { Avatar, Box, Button, ActionList, Label, Link, Text, Tooltip } from '@primer/react';
-import { ClockIcon, CheckIcon } from '@primer/octicons-react';
+import { Avatar, Box, ActionList, Label, Link, Text } from '@primer/react';
+import { ClockIcon } from '@primer/octicons-react';
 import { calculateTimeElapsed } from '../helpers';
 import { createNewTab } from '../utils/createNewTab';
-import { ErrorFlash } from './ErrorFlash';
 import { TodoSchema } from '@gitbeaker/rest';
 
 interface Props {
@@ -35,23 +32,10 @@ const actionToText = (author: string, action: string) => {
 export const TodoItem = (props: Props) => {
     const { todo } = props;
 
-    const [visibility, setVisibility] = useState<boolean>(true);
-    const [error, setError] = useState<Error>();
-
     const timeElapsed = calculateTimeElapsed(todo.created_at);
 
-    const setTodoAsDone = useCallback(() => {
-        browser.runtime
-            .sendMessage({ type: 'setTodoAsDone', todoId: todo.id, accountUuid: '1' }) // TODO: fix accountUuid
-            .then(() => {
-                setError(undefined);
-                setVisibility(false);
-            })
-            .catch((error) => setError(error));
-    }, [todo.id]);
-
     return (
-        <ActionList.Item className={visibility ? 'mrItem' : 'hidden'}>
+        <ActionList.Item className={'mrItem'}>
             <Box display="flex" flexWrap="wrap">
                 <Box className={'avatarsList'}>
                     <Avatar src={todo.author.avatar_url} alt={todo.author.name} square size={40} sx={{ mr: 2 }} />
@@ -74,14 +58,6 @@ export const TodoItem = (props: Props) => {
                         </Label>
                     </div>
                 </Box>
-                <Box display={'flex'} sx={{ alignItems: 'center' }}>
-                    <Tooltip aria-label={'Mark as done'} direction="w">
-                        <Button variant="default" size="small" className={'mt-1'} onClick={setTodoAsDone}>
-                            <CheckIcon />
-                        </Button>
-                    </Tooltip>
-                </Box>
-                {error ? <ErrorFlash error={error} /> : <></>}
             </Box>
         </ActionList.Item>
     );

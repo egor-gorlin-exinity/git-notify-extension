@@ -1,5 +1,5 @@
 import * as browser from 'webextension-polyfill';
-import { getMembersOfGroup, getProjectsList, setTodoAsDone } from './endpoints/index.js';
+import { getMembersOfGroup, getProjectsList } from './endpoints/index.js';
 import { getConfiguration, setGlobalError } from '../common/storage/index.js';
 import { routine } from './routine.js';
 import { logger } from '../common/logger.js';
@@ -69,10 +69,6 @@ browser.runtime.onMessage.addListener((message) => {
                 resolve(false);
             }
         });
-    }
-
-    if (message.type === 'setTodoAsDone') {
-        return setTodoAsDone(message.accountUuid, message.todoId);
     }
 
     if (message.type === 'getProjectsList') {

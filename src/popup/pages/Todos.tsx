@@ -1,7 +1,4 @@
-import { useCallback, useState } from 'react';
-import { Button, ActionList } from '@primer/react';
-import { CheckIcon } from '@primer/octicons-react';
-import * as browser from 'webextension-polyfill';
+import { ActionList } from '@primer/react';
 import { TodoItem } from '../components/TodoItem';
 import { EmptyItems } from '../components/EmptyItems';
 import { TodoSchema } from '@gitbeaker/rest';
@@ -13,26 +10,15 @@ interface Props {
 export const Todos = (props: Props): JSX.Element => {
     const todosLength = props.todos.length;
 
-    const [todosVisibility, setTodosVisibility] = useState(true);
-    const setAllTodosAsDone = useCallback(() => {
-        browser.runtime
-            .sendMessage({ type: 'setTodoAsDone', todoId: null })
-            .then(() => setTodosVisibility(false))
-            .catch((error) => console.error(error));
-    }, []);
-
-    if (!props.todos || todosLength === 0 || !todosVisibility) {
+    if (!props.todos || todosLength === 0) {
         return <EmptyItems />;
     }
 
     return (
         <>
-            {todosLength > 1 && todosVisibility ? (
+            {todosLength > 1 ? (
                 <div className={'subNav'}>
                     <p className={'subNavText'}>{todosLength} tasks to complete</p>
-                    <Button onClick={setAllTodosAsDone} variant="default">
-                        <CheckIcon /> Mark all as done
-                    </Button>
                 </div>
             ) : null}
             <ActionList className={'mrList'}>
