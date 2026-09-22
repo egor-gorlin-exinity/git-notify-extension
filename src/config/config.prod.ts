@@ -16,14 +16,7 @@ export const config = {
     mode: 'production',
     defaultTab: 'to_review',
     alertBadgeCounters: [0],
-    accounts: [
-        /* {
-            uuid: globalThis.crypto.randomUUID(),
-            token: '',
-            address: '',
-            draftInToReviewTab: true,
-            projectDirectoryPrefix: ''
-        } */
-    ],
+    /** Аккаунты заводятся только OAuth-логином из настроек, вручную сюда не пишутся. */
+    accounts: [],
     refreshRate: 60
 } satisfies Configuration;

@@ -6,7 +6,7 @@
 
 _Don't miss any GitLab merge requests or issues and rocket up your productivity._
 
-[Chrome Web Store](https://chrome.google.com/webstore/detail/ekfpkkhpemajcbniegjicehdphdabhop) | [Firefox Add-on](https://addons.mozilla.org/en-US/firefox/addon/git-notify/) | [Microsoft Edge Add-on](https://microsoftedge.microsoft.com/addons/detail/jjnpgaeopmlbaacjkedohiehmeopjoed)
+This fork targets Microsoft Edge only and is not published to any store: build it and load `dist/mv3` unpacked. Upstream is on the [Chrome Web Store](https://chrome.google.com/webstore/detail/ekfpkkhpemajcbniegjicehdphdabhop) and the [Microsoft Edge Add-on](https://microsoftedge.microsoft.com/addons/detail/jjnpgaeopmlbaacjkedohiehmeopjoed) store.
 
 <br clear="left"/>
 
@@ -40,7 +40,8 @@ Install dependencies:
 
 `pnpm ci`
 
-Copy dev config file and set your personal GitLab token in it:
+Copy the dev config file (it carries the OAuth client id and the GitLab host; there is no
+token to fill in — you sign in from the options page):
 
 `pnpm run copy-config:setup`
 
@@ -48,7 +49,7 @@ To build **prod**:
 
 `pnpm run build:prod && pnpm run zip`
 
-Then, you get zipped packages for each browser that are supported.
+Then, you get `dist/edge.zip` (plus `dist/chrome.zip`, the same MV3 build) and `dist/source.zip`.
 
 ## Assets and Documentation
 
