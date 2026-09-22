@@ -7,7 +7,6 @@ import { updateAccountConfiguration } from '../../common/storage';
 import { GITLAB_HOST } from '../../config/config';
 
 interface Props {
-    accountIndex: number;
     account: Account;
     removeAccount: () => void;
 }
@@ -18,7 +17,7 @@ export const AccountConfiguration = (props: Props) => {
     const [account, setAccount] = useState<Account>(props.account);
 
     const setAccountConfiguration = async (data: Partial<Account>) => {
-        await updateAccountConfiguration(props.accountIndex, data);
+        await updateAccountConfiguration(account.uuid, data);
         setAccount({ ...account, ...data });
     };
 

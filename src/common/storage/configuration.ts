@@ -20,17 +20,31 @@ export const updateConfiguration = async (objectToStore: Partial<Configuration>)
     }
 };
 
-// Update specific account configuration
-export const updateAccountConfiguration = async (
-    accountIndex: number,
-    objectToStore: Partial<Account>
-): Promise<void> => {
-    const settings = await getConfiguration(['accounts']);
-    if (!Array.isArray(settings.accounts)) {
-        settings.accounts = [];
-    }
-    settings.accounts[accountIndex] = { ...settings.accounts[accountIndex], ...objectToStore };
-    await updateConfiguration({ accounts: settings.accounts });
+/**
+ * Все записи аккаунтов в этом контексте идут по очереди: `accounts` — один ключ localforage,
+ * и read-modify-write двух перекрывающихся вызовов теряет первую запись. С тех пор как фоновый
+ * воркер обновляет токены, такая потеря означает мёртвый refresh-токен, а не просто откат галочки.
+ *
+ * ponytail: цепочка сериализует записи только внутри одного JS-контекста. Окно «страница настроек
+ * против service worker» остаётся — потолок известен и принят; кросс-контекстный лок (запись через
+ * один runtime-канал) — если он когда-нибудь выстрелит на практике.
+ */
+let accountWrites: Promise<void> = Promise.resolve();
+
+// Update specific account configuration, addressed by uuid: an index drifts when accounts are removed
+export const updateAccountConfiguration = (uuid: string, objectToStore: Partial<Account>): Promise<void> => {
+    const write = accountWrites.then(async () => {
+        const settings = await getConfiguration(['accounts']);
+        const accounts = Array.isArray(settings.accounts) ? settings.accounts : [];
+        const accountIndex = accounts.findIndex((account) => account.uuid === uuid);
+        if (accountIndex === -1) {
+            return;
+        }
+        accounts[accountIndex] = { ...accounts[accountIndex], ...objectToStore };
+        await updateConfiguration({ accounts });
+    });
+    accountWrites = write.catch(() => undefined); // отказ одной записи не должен травить очередь
+    return write;
 };
 
 // Read configuration

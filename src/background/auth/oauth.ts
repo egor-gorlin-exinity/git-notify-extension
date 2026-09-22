@@ -1,7 +1,7 @@
 import * as browser from 'webextension-polyfill';
 import { Account } from '../../common/types';
 import { GITLAB_HOST, OAUTH_CLIENT_ID, OAUTH_SCOPE } from '../../config/config';
-import { getConfiguration, updateAccountConfiguration } from '../../common/storage';
+import { updateAccountConfiguration } from '../../common/storage';
 import { createSingleFlight, createVerifier, challengeFromVerifier, isRevokedGrant, needsRefresh } from './pkce';
 import { GitLabTokenNotSet } from '../../common/errors';
 
@@ -106,18 +106,12 @@ export const logout = async (account: Account): Promise<void> => {
     }
 };
 
-const persistTokens = async (uuid: string, tokens: TokenResponse): Promise<void> => {
-    const settings = await getConfiguration(['accounts']);
-    const index = settings.accounts.findIndex((candidate) => candidate.uuid === uuid);
-    if (index === -1) {
-        return;
-    }
-    await updateAccountConfiguration(index, {
+const persistTokens = (uuid: string, tokens: TokenResponse): Promise<void> =>
+    updateAccountConfiguration(uuid, {
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
         expiresAt: Date.now() + tokens.expires_in * 1000
     });
-};
 
 const refreshFlight = createSingleFlight<string>();
 

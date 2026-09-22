@@ -156,9 +156,11 @@ export const App = () => {
                 </Box>
                 <h2>Accounts</h2>
                 {configuration?.accounts.map((account, index) => (
+                    // key по uuid, а не по индексу: при удалении аккаунта React иначе переиспользует
+                    // инстанс, и выживший аккаунт рисуется с полями удалённого (useState в Account.tsx
+                    // засевается один раз на монтировании).
                     <AccountConfiguration
-                        key={index}
-                        accountIndex={index}
+                        key={account.uuid}
                         account={account}
                         removeAccount={() => removeAccount(index)}
                     />
