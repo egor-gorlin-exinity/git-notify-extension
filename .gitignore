@@ -98,3 +98,6 @@ dist
 .parcel-cache
 parcel-bundle-reports
 .DS_Store
+
+# Extension signing key (pins the extension ID -> redirect URI). NEVER commit.
+extension-key.pem
