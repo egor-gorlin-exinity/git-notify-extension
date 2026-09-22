@@ -5,9 +5,9 @@
     "repository": "https://github.com/Mikescops/git-notify-extension",
     "source": "src/popup/popup.html",
     "scripts": {
-        "start": "pnpm run copy-config:dev; parcel --host localhost --target mv3",
-        "build:dev": "pnpm run copy-config:dev; parcel build --target mv3",
-        "build:prod": "rm -rf dist/; pnpm run copy-config:prod; pnpm run build:prod:mv3",
+        "start": "pnpm run copy-config:dev && parcel --host localhost --target mv3",
+        "build:dev": "pnpm run copy-config:dev && parcel build --target mv3",
+        "build:prod": "rm -rf dist/ && pnpm run copy-config:prod && pnpm run build:prod:mv3",
         "build:prod:mv3": "parcel build --target mv3",
         "copy-config:setup": "cp src/config/config.prod.ts src/config/config.dev.ts",
         "copy-config:dev": "cp src/config/config.dev.ts src/config/config.ts",
