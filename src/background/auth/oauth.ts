@@ -1,7 +1,7 @@
 import * as browser from 'webextension-polyfill';
 import { Account } from '../../common/types';
 import { GITLAB_HOST, OAUTH_CLIENT_ID, OAUTH_SCOPE } from '../../config/config';
-import { updateAccountConfiguration } from '../../common/storage';
+import { getConfiguration, updateAccountConfiguration } from '../../common/storage';
 import { createSingleFlight, createVerifier, challengeFromVerifier, isRevokedGrant, needsRefresh } from './pkce';
 import { GitLabTokenNotSet } from '../../common/errors';
 
@@ -126,12 +126,21 @@ export const getFreshAccessToken = async (account: Account): Promise<string> => 
     }
 
     return refreshFlight(account.uuid, async () => {
+        // `account` — снимок, прочитанный вызывающим до входа сюда, а single-flight отпускает ключ
+        // сразу по завершении первого обновления. Пришедший следом вызов с тем же старым снимком
+        // повторил бы уже отработанный refresh-токен, а GitLab инвалидирует его при ротации.
+        const settings = await getConfiguration(['accounts']);
+        const current = settings.accounts?.find((candidate) => candidate.uuid === account.uuid) ?? account;
+        if (current.refreshToken && !needsRefresh(current.expiresAt)) {
+            return current.accessToken;
+        }
+
         let tokens: TokenResponse;
         try {
             tokens = await requestTokens({
                 client_id: OAUTH_CLIENT_ID,
                 grant_type: 'refresh_token',
-                refresh_token: account.refreshToken,
+                refresh_token: current.refreshToken,
                 redirect_uri: redirectUri()
             });
         } catch (error) {
