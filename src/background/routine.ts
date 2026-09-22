@@ -9,6 +9,8 @@ interface RoutineParams {
 }
 
 export interface RoutineResult {
+    /** Сколько аккаунтов реально опрошено: без этого одну ошибку не отличить от «сломались все». */
+    polledAccounts: number;
     collectedErrors: {
         uuid: string;
         errors: Error[];
@@ -88,6 +90,7 @@ export const routine = async (params: RoutineParams): Promise<RoutineResult> => 
     await setBadge(badgeText.length > 0 ? badgeText.join('⋅') : '', badgeColor);
 
     return {
+        polledAccounts: result.length,
         collectedErrors: result
             .map((r) => {
                 const collectedErrors = [];

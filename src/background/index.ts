@@ -10,10 +10,22 @@ import { FailFetchSettings, GitLabNoAccount, GlobalError } from '../common/error
  * Достаём из них GlobalError (signed-out, no account): попап различает такие
  * по `.name` и показывает нужный экран. Обычные ошибки выборки остаются
  * обычными Error и глобальными не становятся.
+ *
+ * Поднимаем до глобальной, только когда не осталось ни одного работающего аккаунта:
+ * Content.tsx разворачивает GlobalError в полноэкранный Onboarding, и один разлогиненный
+ * аккаунт иначе прятал бы исправные за «настройте расширение», не говоря даже какой сломан.
+ * Пока хоть один аккаунт жив, это доносит пер-аккаунтный ErrorFlash — он уже печатает uuid.
  */
-const globalErrorFrom = (collectedErrors: RoutineResult['collectedErrors']): GlobalError | null => {
-    const errors = collectedErrors.flatMap((entry) => entry.errors);
-    return errors.find((error): error is GlobalError => error instanceof GlobalError) ?? null;
+const globalErrorFrom = ({ polledAccounts, collectedErrors }: RoutineResult): GlobalError | null => {
+    const globalErrors = collectedErrors.map(
+        (entry) => entry.errors.find((error): error is GlobalError => error instanceof GlobalError) ?? null
+    );
+
+    if (globalErrors.length !== polledAccounts || !globalErrors.every(Boolean)) {
+        return null;
+    }
+
+    return globalErrors[0] ?? null;
 };
 
 logger('Background script loaded');
@@ -34,8 +46,7 @@ getConfiguration(['accounts', 'refreshRate']).then(async (settings) => {
 
     browser.alarms.onAlarm.addListener(async () => {
         try {
-            const { collectedErrors } = await routine({});
-            await setGlobalError(globalErrorFrom(collectedErrors));
+            await setGlobalError(globalErrorFrom(await routine({})));
         } catch (error) {
             if (error instanceof Error) {
                 await setGlobalError(error);
@@ -55,9 +66,9 @@ browser.runtime.onMessage.addListener((message) => {
     if (message.type === 'getLatestDataFromGitLab') {
         return new Promise(async (resolve) => {
             try {
-                const { collectedErrors } = await routine({});
-                await setGlobalError(globalErrorFrom(collectedErrors));
-                resolve(collectedErrors.length === 0);
+                const result = await routine({});
+                await setGlobalError(globalErrorFrom(result));
+                resolve(result.collectedErrors.length === 0);
             } catch (error) {
                 if (error instanceof Error) {
                     await setGlobalError(error);
@@ -70,9 +81,9 @@ browser.runtime.onMessage.addListener((message) => {
     if (message.type === 'testAccount') {
         return new Promise(async (resolve) => {
             try {
-                const { collectedErrors } = await routine({ accountUuids: [message.accountUuid] });
-                await setGlobalError(globalErrorFrom(collectedErrors));
-                resolve(collectedErrors.length === 0);
+                const result = await routine({ accountUuids: [message.accountUuid] });
+                await setGlobalError(globalErrorFrom(result));
+                resolve(result.collectedErrors.length === 0);
             } catch (error) {
                 if (error instanceof Error) {
                     await setGlobalError(error);
