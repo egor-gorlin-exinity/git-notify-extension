@@ -78,7 +78,7 @@
         "vm-browserify": "^1.1.2"
     },
     "engines": {
-        "node": "18.x.x",
+        "node": ">=22.18",
         "npm": ">=9"
     },
     "@parcel/resolver-default": {

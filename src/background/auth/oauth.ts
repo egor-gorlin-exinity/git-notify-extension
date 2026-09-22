@@ -2,13 +2,24 @@ import * as browser from 'webextension-polyfill';
 import { Account } from '../../common/types';
 import { GITLAB_HOST, OAUTH_CLIENT_ID, OAUTH_SCOPE } from '../../config/config';
 import { getConfiguration, updateAccountConfiguration } from '../../common/storage';
-import { createSingleFlight, createVerifier, challengeFromVerifier, needsRefresh } from './pkce';
+import { createSingleFlight, createVerifier, challengeFromVerifier, isRevokedGrant, needsRefresh } from './pkce';
 import { GitLabTokenNotSet } from '../../common/errors';
 
 interface TokenResponse {
     access_token: string;
     refresh_token: string;
     expires_in: number;
+}
+
+/** Отказ /oauth/token с сохранёнными статусом и кодом ошибки: по ним решается, отозвана ли авторизация. */
+class OAuthTokenError extends Error {
+    constructor(
+        readonly status: number,
+        readonly errorCode: string | undefined,
+        message: string
+    ) {
+        super(message);
+    }
 }
 
 const redirectUri = () => browser.identity.getRedirectURL();
@@ -21,7 +32,14 @@ const requestTokens = async (body: Record<string, string>): Promise<TokenRespons
     });
 
     if (!response.ok) {
-        throw new Error(`OAuth token request failed: ${response.status} ${await response.text()}`);
+        const text = await response.text();
+        let errorCode: string | undefined;
+        try {
+            errorCode = (JSON.parse(text) as { error?: string }).error;
+        } catch {
+            // не JSON: кода ошибки нет, решаем по одному статусу
+        }
+        throw new OAuthTokenError(response.status, errorCode, `OAuth token request failed: ${response.status} ${text}`);
     }
 
     return response.json() as Promise<TokenResponse>;
@@ -123,8 +141,15 @@ export const getFreshAccessToken = async (account: Account): Promise<string> => 
                 redirect_uri: redirectUri()
             });
         } catch (error) {
+            const refusal = error instanceof OAuthTokenError ? error : null;
+            if (!isRevokedGrant(refusal?.status ?? 0, refusal?.errorCode)) {
+                // Сеть, 5xx, 429 — refresh-токен ещё жив. Пробрасываем: это пер-аккаунтная
+                // ошибка (не GlobalError), следующий поллинг повторит с тем же токеном.
+                console.error('Token refresh failed, keeping the session:', error);
+                throw error;
+            }
             // Авторизацию отозвали или refresh-токен истёк — вернуть в состояние «не залогинен».
-            console.error('Token refresh failed, signing out:', error);
+            console.error('Authorization revoked, signing out:', error);
             await persistTokens(account.uuid, { access_token: '', refresh_token: '', expires_in: 0 });
             throw new GitLabTokenNotSet();
         }

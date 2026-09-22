@@ -1,10 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { challengeFromVerifier, createVerifier, needsRefresh, createSingleFlight } from './pkce.ts';
+import { challengeFromVerifier, createVerifier, isRevokedGrant, needsRefresh, createSingleFlight } from './pkce.ts';
 
 test('challengeFromVerifier соответствует эталону RFC 7636 Appendix B', async () => {
     const challenge = await challengeFromVerifier('dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk');
     assert.equal(challenge, 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM');
+});
+
+test('challengeFromVerifier кодирует обе замены base64url', async () => {
+    // Вектор RFC 7636 содержит '-', но не '_': эта пара пиннит и '+' -> '-', и '/' -> '_'.
+    assert.equal(await challengeFromVerifier('test'), 'n4bQgYhMfWWaL-qgxVrQFaO_TxsrC4Is0V1sFbDwCgg');
 });
 
 test('createVerifier даёт base64url без паддинга длиной в допустимом диапазоне', () => {
@@ -17,6 +22,7 @@ test('createVerifier даёт base64url без паддинга длиной в 
 test('needsRefresh уважает окно в 60 секунд', () => {
     const now = 1_000_000;
     assert.equal(needsRefresh(now + 61_000, now), false, 'до окна обновляться не должны');
+    assert.equal(needsRefresh(now + 60_000, now), true, 'граница окна включительная');
     assert.equal(needsRefresh(now + 59_000, now), true, 'внутри окна обновляемся');
     assert.equal(needsRefresh(now - 1, now), true, 'протухший токен обновляем');
 });
@@ -51,4 +57,14 @@ test('createSingleFlight не мешает разным ключам и отпу
     await assert.rejects(flight('c', () => Promise.reject(new Error('boom'))));
     await flight('c', fn);
     assert.equal(calls, 3, 'после отказа ключ должен освободиться');
+});
+
+test('isRevokedGrant чистит токены только на отказанном гранте', () => {
+    assert.equal(isRevokedGrant(400, 'invalid_grant'), true, 'отозванная или истёкшая авторизация');
+    assert.equal(isRevokedGrant(401), true, 'отозванный токен');
+    assert.equal(isRevokedGrant(400, 'invalid_request'), false, 'другой 400 — не отзыв');
+    assert.equal(isRevokedGrant(400), false, '400 без кода ошибки — не отзыв');
+    assert.equal(isRevokedGrant(500), false, 'сбой GitLab — не отзыв');
+    assert.equal(isRevokedGrant(429), false, 'rate limit — не отзыв');
+    assert.equal(isRevokedGrant(0), false, 'сеть не ответила — статуса нет, не отзыв');
 });

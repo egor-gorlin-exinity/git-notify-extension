@@ -41,3 +41,12 @@ export const createSingleFlight = <V>() => {
         return promise;
     };
 };
+
+/**
+ * Отозвана ли авторизация — единственный случай, когда чистить токены аккаунта.
+ * Спека называет ровно `400 invalid_grant`; 401 добавлен как страховка на отозванный токен.
+ * Всё остальное (5xx, 429, отсутствие ответа вообще — `status` 0) временное: токен ещё жив,
+ * и следующий поллинг должен повторить, а не разлогинивать пользователя.
+ */
+export const isRevokedGrant = (status: number, errorCode?: string): boolean =>
+    (status === 400 && errorCode === 'invalid_grant') || status === 401;
