@@ -3,6 +3,7 @@ import { removeDuplicateObjectFromArray } from '../../popup/helpers';
 import { initGitlabApi } from '../utils/initGitlabApi';
 import { IssueSchemaWithBasicLabels, MergeRequestSchemaWithBasicLabels, TodoSchema } from '@gitbeaker/rest';
 import { Account, MergeRequestsDetails } from '../../common/types';
+import { GlobalError } from '../../common/errors';
 
 interface GetLatestDataFromGitLabParams {
     account: Account;
@@ -36,7 +37,13 @@ export const getLatestDataFromGitLab = async (
             myDrafts: [],
             issues: [],
             todos: [],
-            error: new Error('Failed to initialize GitLab API: ' + (error as Error).message)
+            // GitLabTokenNotSet (and other GlobalError subclasses) is the designed sign-out signal —
+            // propagate it unchanged so callers can still tell it apart by `.name`, instead of burying
+            // it in a generic Error that downstream `instanceof`/name checks can never match.
+            error:
+                error instanceof GlobalError
+                    ? error
+                    : new Error('Failed to initialize GitLab API: ' + (error as Error).message)
         };
     }
 

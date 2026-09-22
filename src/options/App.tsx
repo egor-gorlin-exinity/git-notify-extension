@@ -1,6 +1,6 @@
 import * as browser from 'webextension-polyfill';
 import { useState, useEffect } from 'react';
-import { Box, Button, TextInput, Tooltip, Octicon, FormControl, Select, ThemeProvider } from '@primer/react';
+import { Box, Button, Flash, TextInput, Tooltip, Octicon, FormControl, Select, ThemeProvider } from '@primer/react';
 import { InfoIcon, ClockIcon } from '@primer/octicons-react';
 import './style.css';
 import { Configuration, TabId } from '../common/types';
@@ -12,6 +12,7 @@ const getSettings = getConfiguration(['accounts', 'refreshRate', 'defaultTab', '
 
 export const App = () => {
     const [configuration, setConfiguration] = useState<Configuration>();
+    const [loginError, setLoginError] = useState<{ message: string; cancelled: boolean } | null>(null);
 
     useEffect(() => {
         getSettings.then((settings) => {
@@ -34,16 +35,30 @@ export const App = () => {
     };
 
     const addNewAccount = async () => {
+        setLoginError(null);
         try {
             const account = await login();
-            await updateConfigurationInMemory({ accounts: [...(configuration?.accounts || []), account] });
+            // Re-read from storage rather than trusting in-memory `configuration.accounts`: the
+            // background worker rotates other accounts' tokens independently, and this page's state
+            // can be stale by the time the user clicks. Writing back a stale copy would roll those
+            // accounts' tokens back to dead values (see Task 6 fix round 1, findings 2/3).
+            const settings = await getConfiguration(['accounts']);
+            await updateConfigurationInMemory({ accounts: [...(settings.accounts || []), account] });
         } catch (error) {
-            console.error('Login failed:', error);
+            const message = error instanceof Error ? error.message : String(error);
+            const cancelled = /did not approve/i.test(message);
+            if (!cancelled) {
+                console.error('Login failed:', error);
+            }
+            setLoginError({ message: cancelled ? 'Sign-in cancelled.' : message, cancelled });
         }
     };
 
     const removeAccount = async (index: number) => {
-        const accounts = configuration?.accounts || [];
+        // Same reason as addNewAccount: read fresh so we logout()/persist the account's real,
+        // currently-valid tokens instead of a stale in-memory snapshot.
+        const settings = await getConfiguration(['accounts']);
+        const accounts = settings.accounts || [];
         await logout(accounts[index]);
         void clearAccountStorage(accounts[index].uuid);
         accounts.splice(index, 1);
@@ -149,6 +164,9 @@ export const App = () => {
                     />
                 ))}
                 <Button onClick={addNewAccount}>Sign in with GitLab</Button>
+                {loginError && (
+                    <Flash variant={loginError.cancelled ? 'default' : 'danger'}>{loginError.message}</Flash>
+                )}
             </Box>
         </ThemeProvider>
     );

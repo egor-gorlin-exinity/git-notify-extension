@@ -75,11 +75,14 @@ export const login = async (): Promise<Account> => {
 /** Отзывает авторизацию на стороне GitLab. Ошибку глушим: локально аккаунт всё равно удаляется. */
 export const logout = async (account: Account): Promise<void> => {
     try {
-        await fetch(`${GITLAB_HOST}/oauth/revoke`, {
+        const response = await fetch(`${GITLAB_HOST}/oauth/revoke`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({ client_id: OAUTH_CLIENT_ID, token: account.refreshToken }).toString()
         });
+        if (!response.ok) {
+            console.error(`Token revocation refused: ${response.status} ${await response.text()}`);
+        }
     } catch (error) {
         console.error('Token revocation failed, removing account locally anyway:', error);
     }
