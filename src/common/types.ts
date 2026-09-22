@@ -42,7 +42,6 @@ export interface Configuration {
 
 export interface Account {
     uuid: string;
-    gitlabCE: boolean;
     token: string;
     address: string;
     draftInToReviewTab: boolean;

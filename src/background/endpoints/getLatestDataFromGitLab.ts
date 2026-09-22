@@ -127,8 +127,7 @@ export const getLatestDataFromGitLab = async (
             () =>
                 fetchMRExtraInfo({
                     gitlabApi,
-                    mrList: requests,
-                    gitlabCE: account.gitlabCE
+                    mrList: requests
                 }),
             new Error('Failed to fetch extra MR Received details')
         );
@@ -155,8 +154,7 @@ export const getLatestDataFromGitLab = async (
             () =>
                 fetchMRExtraInfo({
                     gitlabApi,
-                    mrList: mrGiven,
-                    gitlabCE: account.gitlabCE
+                    mrList: mrGiven
                 }),
             new Error('Failed to fetch extra MR Given details')
         );

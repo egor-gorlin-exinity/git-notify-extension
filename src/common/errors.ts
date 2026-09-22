@@ -25,12 +25,6 @@ export class FailFetchSettings extends GlobalError {
     }
 }
 
-export class GitLabIsCE extends GlobalError {
-    constructor() {
-        super('GitLabIsCE', 'You are likely using GitLab CE.\nPlease check the box in the options.');
-    }
-}
-
 export class GitLabNoAccount extends GlobalError {
     constructor() {
         super('GitLabNoAccount', 'No account were configured.');

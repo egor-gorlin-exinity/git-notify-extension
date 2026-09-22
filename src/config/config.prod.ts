@@ -7,7 +7,6 @@ export const config = {
     accounts: [
         /* {
             uuid: globalThis.crypto.randomUUID(),
-            gitlabCE: false,
             token: '',
             address: '',
             draftInToReviewTab: true,

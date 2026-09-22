@@ -48,17 +48,6 @@ export const AccountConfiguration = (props: Props) => {
                 <strong>Uuid:</strong> {account.uuid}
             </Text>
             <FormControl>
-                <FormControl.Label>Using GitLab Community Edition</FormControl.Label>
-                <Checkbox
-                    type="checkbox"
-                    name="gitlabCE"
-                    value="GitLab CE Mode"
-                    onChange={(e) => setAccountConfiguration({ gitlabCE: e.target.checked })}
-                    checked={account.gitlabCE}
-                />
-                <FormControl.Caption>(approvals are a premium feature)</FormControl.Caption>
-            </FormControl>
-            <FormControl>
                 <FormControl.Label>
                     Personal GitLab Token{' '}
                     <Link href="https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html" target="_blank">

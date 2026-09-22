@@ -60,7 +60,6 @@ export const getConfiguration = async <T extends keyof Configuration>(keys: T[])
             settings.accounts = accounts.map((account: any) => ({
                 token: account.token,
                 address: account.address,
-                gitlabCE: Boolean(account.gitlabCE),
                 draftInToReviewTab: Boolean(account.draftInToReviewTab),
                 projectDirectoryPrefix: account.projectDirectoryPrefix
             }));
@@ -78,7 +77,6 @@ export const defaultEmptyAccount: () => Account = () => ({
     uuid: globalThis.crypto.randomUUID(),
     token: '',
     address: '',
-    gitlabCE: false,
     draftInToReviewTab: false,
     projectDirectoryPrefix: ''
 });
