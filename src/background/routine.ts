@@ -8,7 +8,7 @@ interface RoutineParams {
     accountUuids?: string[];
 }
 
-interface RoutineResult {
+export interface RoutineResult {
     collectedErrors: {
         uuid: string;
         errors: Error[];
