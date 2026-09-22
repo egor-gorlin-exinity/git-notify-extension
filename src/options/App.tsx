@@ -5,7 +5,8 @@ import { InfoIcon, ClockIcon } from '@primer/octicons-react';
 import './style.css';
 import { Configuration, TabId } from '../common/types';
 import { AccountConfiguration } from './components/Account';
-import { getConfiguration, updateConfiguration, defaultEmptyAccount, clearAccountStorage } from '../common/storage';
+import { getConfiguration, updateConfiguration, clearAccountStorage } from '../common/storage';
+import { login, logout } from '../background/auth/oauth';
 
 const getSettings = getConfiguration(['accounts', 'refreshRate', 'defaultTab', 'alertBadgeCounters', 'mode']);
 
@@ -32,16 +33,21 @@ export const App = () => {
         }
     };
 
-    const addNewAccount = () =>
-        updateConfigurationInMemory({
-            accounts: [...(configuration?.accounts || []), defaultEmptyAccount()]
-        });
+    const addNewAccount = async () => {
+        try {
+            const account = await login();
+            await updateConfigurationInMemory({ accounts: [...(configuration?.accounts || []), account] });
+        } catch (error) {
+            console.error('Login failed:', error);
+        }
+    };
 
-    const removeAccount = (index: number) => {
+    const removeAccount = async (index: number) => {
         const accounts = configuration?.accounts || [];
+        await logout(accounts[index]);
         void clearAccountStorage(accounts[index].uuid);
         accounts.splice(index, 1);
-        updateConfigurationInMemory({ accounts });
+        await updateConfigurationInMemory({ accounts });
     };
 
     return (
@@ -142,7 +148,7 @@ export const App = () => {
                         removeAccount={() => removeAccount(index)}
                     />
                 ))}
-                <Button onClick={addNewAccount}>Add account</Button>
+                <Button onClick={addNewAccount}>Sign in with GitLab</Button>
             </Box>
         </ThemeProvider>
     );

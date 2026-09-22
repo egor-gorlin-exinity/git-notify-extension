@@ -42,8 +42,10 @@ export interface Configuration {
 
 export interface Account {
     uuid: string;
-    token: string;
-    address: string;
+    accessToken: string;
+    refreshToken: string;
+    /** epoch ms, момент истечения accessToken */
+    expiresAt: number;
     draftInToReviewTab: boolean;
     projectDirectoryPrefix: string;
 }

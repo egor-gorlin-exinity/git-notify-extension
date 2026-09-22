@@ -1,6 +1,6 @@
 import localforage from 'localforage';
 import { setBadge } from '../utils/setBadge.js';
-import { GlobalError, GitLabAddressNotSet, GitLabTokenNotSet } from '../errors.js';
+import { GlobalError, GitLabTokenNotSet } from '../errors.js';
 
 // Create a localforage instance for global error storage
 const globalErrorStorage = localforage.createInstance({
@@ -16,9 +16,8 @@ export const setGlobalError = async (error: Error | null): Promise<void> => {
             stack: error.stack || ''
         };
 
-        const badgeColor =
-            error instanceof GitLabAddressNotSet || error instanceof GitLabTokenNotSet ? 'orange' : 'red';
-        await setBadge('!', badgeColor);
+        const color = error instanceof GitLabTokenNotSet ? 'orange' : 'red';
+        await setBadge('!', color);
 
         try {
             await globalErrorStorage.setItem('globalError', globalError);

@@ -26,7 +26,7 @@ export const getLatestDataFromGitLab = async (
 
     let gitlabApi;
     try {
-        gitlabApi = initGitlabApi({ account });
+        gitlabApi = await initGitlabApi({ account });
     } catch (error) {
         return {
             mrReceivedDetails: [],

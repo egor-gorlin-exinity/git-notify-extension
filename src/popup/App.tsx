@@ -9,6 +9,7 @@ import { TabId } from '../common/types';
 import { AppStatus } from './types';
 import { GlobalError } from '../common/errors';
 import { getConfiguration } from '../common/storage';
+import { GITLAB_HOST } from '../config/config';
 
 import './style.css';
 
@@ -28,13 +29,11 @@ export const App = () => {
     });
 
     const [currentTab, setCurrentTab] = useState('to_review' as TabId);
-    const [gitlabAddress, setGitlabAddress] = useState('');
 
     const applySettings = useCallback(() => {
         const getSettings = getConfiguration(['defaultTab', 'accounts']);
         getSettings.then((settings) => {
             setCurrentTab(settings.defaultTab ?? 'to_review');
-            setGitlabAddress(settings.accounts.length > 0 ? settings.accounts[0].address ?? 'https://gitlab.com' : '');
         });
     }, []);
 
@@ -104,7 +103,7 @@ export const App = () => {
                     mrData={mrData}
                     appStatus={appStatus}
                     fetchData={fetchData}
-                    gitlabAddress={gitlabAddress}
+                    gitlabAddress={GITLAB_HOST}
                 />
             </Box>
         </ThemeProvider>

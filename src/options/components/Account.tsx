@@ -1,16 +1,10 @@
 import * as browser from 'webextension-polyfill';
 import { useState } from 'react';
-import {
-    InfoIcon,
-    KeyIcon,
-    ServerIcon,
-    FileDirectoryIcon,
-    PackageDependenciesIcon,
-    TrashIcon
-} from '@primer/octicons-react';
-import { Box, Button, Checkbox, Flash, FormControl, Link, Octicon, Text, TextInput, Tooltip } from '@primer/react';
+import { InfoIcon, FileDirectoryIcon, PackageDependenciesIcon, TrashIcon } from '@primer/octicons-react';
+import { Box, Button, Checkbox, Flash, FormControl, Octicon, Text, TextInput, Tooltip } from '@primer/react';
 import { Account } from '../../common/types';
 import { updateAccountConfiguration } from '../../common/storage';
+import { GITLAB_HOST } from '../../config/config';
 
 interface Props {
     accountIndex: number;
@@ -48,49 +42,6 @@ export const AccountConfiguration = (props: Props) => {
                 <strong>Uuid:</strong> {account.uuid}
             </Text>
             <FormControl>
-                <FormControl.Label>
-                    Personal GitLab Token{' '}
-                    <Link href="https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html" target="_blank">
-                        <Tooltip
-                            wrap={true}
-                            aria-label="Click to open GitLab documentation.
-                    The extension requires 'api' right (or just 'read_api' but all write operations will fail)."
-                        >
-                            <Octicon icon={InfoIcon} size={15} color="blue.5" />
-                        </Tooltip>
-                    </Link>
-                </FormControl.Label>
-                <TextInput
-                    type="password"
-                    leadingVisual={KeyIcon}
-                    block
-                    name="gitlab-token"
-                    value={account.token}
-                    placeholder="<your_token_here>"
-                    onChange={(e) => setAccountConfiguration({ token: e.target.value })}
-                    aria-label="gitlab-token"
-                    sx={{ boxSizing: 'border-box' }}
-                />
-            </FormControl>
-            <FormControl>
-                <FormControl.Label>
-                    GitLab Host Address{' '}
-                    <Tooltip aria-label="Example: https://gitlab.com">
-                        <Octicon icon={InfoIcon} size={15} color="blue.5" />
-                    </Tooltip>
-                </FormControl.Label>
-                <TextInput
-                    leadingVisual={ServerIcon}
-                    block
-                    name="gitlab-address"
-                    value={account.address}
-                    placeholder="<host_address_here>"
-                    onChange={(e) => setAccountConfiguration({ address: e.target.value })}
-                    aria-label="gitlab-address"
-                    sx={{ boxSizing: 'border-box' }}
-                />
-            </FormControl>
-            <FormControl>
                 <FormControl.Label>View draft MRs in &quot;To Review&quot; tab</FormControl.Label>
                 <Checkbox
                     type="checkbox"
@@ -125,6 +76,12 @@ export const AccountConfiguration = (props: Props) => {
                     sx={{ boxSizing: 'border-box' }}
                 />
             </FormControl>
+
+            <Flash variant={account.refreshToken ? 'success' : 'warning'}>
+                {account.refreshToken
+                    ? `Signed in to ${GITLAB_HOST} (read-only)`
+                    : 'Not signed in — remove this account and sign in again'}
+            </Flash>
 
             <Box display="flex" sx={{ columnGap: 2 }}>
                 <Button

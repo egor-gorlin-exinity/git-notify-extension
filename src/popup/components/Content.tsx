@@ -71,11 +71,7 @@ export const Content = (props: Props) => {
     }
 
     if (appStatus === 'error' && error) {
-        if (
-            error.name === 'GitLabTokenNotSet' ||
-            error.name === 'GitLabAddressNotSet' ||
-            error.name === 'GitLabNoAccount'
-        ) {
+        if (error.name === 'GitLabTokenNotSet' || error.name === 'GitLabNoAccount') {
             return <Onboarding />;
         }
 

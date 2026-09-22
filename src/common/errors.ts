@@ -13,12 +13,6 @@ export class GitLabTokenNotSet extends GlobalError {
     }
 }
 
-export class GitLabAddressNotSet extends GlobalError {
-    constructor() {
-        super('GitLabAddressNotSet', 'No GitLab host address set, visit options.');
-    }
-}
-
 export class FailFetchSettings extends GlobalError {
     constructor() {
         super('FailFetchSettings', 'Fail fetching settings.');

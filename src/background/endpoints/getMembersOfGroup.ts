@@ -6,7 +6,7 @@ import { GroupMember } from '../../common/types';
 
 export const getMembersOfGroup = async (groupId: number): Promise<GroupMember[]> => {
     const settings = await getConfiguration(['accounts']);
-    const gitlabApi = initGitlabApi({ account: settings.accounts[0] });
+    const gitlabApi = await initGitlabApi({ account: settings.accounts[0] });
     const groupMembers = (await gitlabApi.GroupMembers.all(groupId)) as MemberSchema[];
     const groupMembersWithCount = groupMembers.map((member) => {
         return { ...member, mergeRequestsCount: 0 };

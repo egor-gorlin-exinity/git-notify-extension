@@ -54,29 +54,9 @@ export const getConfiguration = async <T extends keyof Configuration>(keys: T[])
             settings.defaultTab = legacyMapping[settings.defaultTab] ?? 'to_review';
         }
 
-        // Convert accounts string to array if needed
-        if (typeof settings.accounts === 'string') {
-            const accounts = JSON.parse(settings.accounts);
-            settings.accounts = accounts.map((account: any) => ({
-                token: account.token,
-                address: account.address,
-                draftInToReviewTab: Boolean(account.draftInToReviewTab),
-                projectDirectoryPrefix: account.projectDirectoryPrefix
-            }));
-        }
-
         return settings as Pick<Configuration, T>;
     } catch (error) {
         console.error('Error reading configuration:', error);
         throw error;
     }
 };
-
-// Default empty account
-export const defaultEmptyAccount: () => Account = () => ({
-    uuid: globalThis.crypto.randomUUID(),
-    token: '',
-    address: '',
-    draftInToReviewTab: false,
-    projectDirectoryPrefix: ''
-});
