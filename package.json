@@ -14,6 +14,7 @@
         "copy-config:prod": "cp src/config/config.prod.ts src/config/config.ts",
         "lint": "tsc --noEmit --rootDir src/ && eslint \"src/**/*.ts{,x}\"",
         "lint:fix": "pnpm run lint -- --quiet --fix",
+        "test": "node --test src/background/auth/pkce.test.ts",
         "build-analyser": "parcel build src/manifest/manifest.json --reporter @parcel/reporter-bundle-analyzer",
         "zip": "pnpm run zip:chrome; pnpm run zip:edge; pnpm run zip:source",
         "zip:chrome": "ts-node ./src/tools/zip.ts dist/mv3 chrome.zip",
