@@ -7,37 +7,30 @@
     "scripts": {
         "start": "pnpm run copy-config:dev; parcel --host localhost --target mv3",
         "build:dev": "pnpm run copy-config:dev; parcel build --target mv3",
-        "build:prod": "rm -rf dist/; pnpm run copy-config:prod; pnpm run build:prod:mv3; pnpm run build:prod:mv2",
+        "build:prod": "rm -rf dist/; pnpm run copy-config:prod; pnpm run build:prod:mv3",
         "build:prod:mv3": "parcel build --target mv3",
-        "build:prod:mv2": "parcel build --target mv2",
         "copy-config:setup": "cp src/config/config.prod.ts src/config/config.dev.ts",
         "copy-config:dev": "cp src/config/config.dev.ts src/config/config.ts",
         "copy-config:prod": "cp src/config/config.prod.ts src/config/config.ts",
         "lint": "tsc --noEmit --rootDir src/ && eslint \"src/**/*.ts{,x}\"",
         "lint:fix": "pnpm run lint -- --quiet --fix",
         "build-analyser": "parcel build src/manifest/manifest.json --reporter @parcel/reporter-bundle-analyzer",
-        "zip": "pnpm run zip:chrome; pnpm run zip:edge; pnpm run zip:firefox; pnpm run zip:source",
+        "zip": "pnpm run zip:chrome; pnpm run zip:edge; pnpm run zip:source",
         "zip:chrome": "ts-node ./src/tools/zip.ts dist/mv3 chrome.zip",
         "zip:edge": "ts-node ./src/tools/zip.ts dist/mv3 edge.zip",
-        "zip:firefox": "ts-node ./src/tools/zip.ts dist/mv2 firefox.zip",
         "zip:source": "git archive --format=zip HEAD -o dist/source.zip"
     },
     "author": "Corentin Mors (corentin@pixelswap.fr)",
     "license": "ISC",
     "browserslist": [
-        "last 2 Chrome versions",
-        "last 2 Firefox versions"
+        "last 2 Chrome versions"
     ],
     "targets": {
         "mv3": {
             "source": "src/manifest/manifest.json",
             "context": "service-worker",
-            "sourceMap": false
-        },
-        "mv2": {
-            "source": "src/manifest-v2/manifest.json",
-            "context": "service-worker",
-            "sourceMap": false
+            "sourceMap": false,
+            "distDir": "dist/mv3"
         }
     },
     "dependencies": {
