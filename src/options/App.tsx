@@ -43,7 +43,16 @@ export const App = () => {
             // can be stale by the time the user clicks. Writing back a stale copy would roll those
             // accounts' tokens back to dead values (see Task 6 fix round 1, findings 2/3).
             const settings = await getConfiguration(['accounts']);
-            await updateConfigurationInMemory({ accounts: [...(settings.accounts || []), account] });
+            const accounts = settings.accounts || [];
+            // Повторный вход тем же пользователем обновляет токены его аккаунта, а не заводит копию.
+            const index = accounts.findIndex((existing) => existing.userId === account.userId);
+            if (index === -1) {
+                accounts.push(account);
+            } else {
+                const { accessToken, refreshToken, expiresAt } = account;
+                accounts[index] = { ...accounts[index], accessToken, refreshToken, expiresAt };
+            }
+            await updateConfigurationInMemory({ accounts });
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             const cancelled = /did not approve/i.test(message);

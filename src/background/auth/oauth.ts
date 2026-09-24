@@ -80,8 +80,17 @@ export const login = async (): Promise<Account> => {
         code_verifier: verifier
     });
 
+    const userResponse = await fetch(`${GITLAB_HOST}/api/v4/user`, {
+        headers: { Authorization: `Bearer ${tokens.access_token}` }
+    });
+    if (!userResponse.ok) {
+        throw new Error(`Failed to identify the signed-in user: ${userResponse.status}`);
+    }
+    const { id: userId } = (await userResponse.json()) as { id: number };
+
     return {
         uuid: globalThis.crypto.randomUUID(),
+        userId,
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
         expiresAt: Date.now() + tokens.expires_in * 1000,

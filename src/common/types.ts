@@ -42,6 +42,8 @@ export interface Configuration {
 
 export interface Account {
     uuid: string;
+    /** id пользователя GitLab: по нему повторный вход находит уже заведённый аккаунт */
+    userId: number;
     accessToken: string;
     refreshToken: string;
     /** epoch ms, момент истечения accessToken */

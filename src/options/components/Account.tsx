@@ -76,10 +76,10 @@ export const AccountConfiguration = (props: Props) => {
                 />
             </FormControl>
 
-            <Flash variant={account.refreshToken ? 'success' : 'warning'}>
-                {account.refreshToken
+            <Flash variant={props.account.refreshToken ? 'success' : 'warning'}>
+                {props.account.refreshToken
                     ? `Signed in to ${GITLAB_HOST} (read-only)`
-                    : 'Not signed in — remove this account and sign in again'}
+                    : 'Not signed in — sign in with GitLab again'}
             </Flash>
 
             <Box display="flex" sx={{ columnGap: 2 }}>
